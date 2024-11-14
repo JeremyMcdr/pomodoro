@@ -97,25 +97,31 @@ const App = () => {
   };
 
   useEffect(() => {
-    let interval = null;
+    let intervalId = null;
+    let startTime = null;
     
     if (isActive) {
-      interval = setInterval(() => {
-        if (seconds === 0) {
-          if (minutes === 0) {
-            handlePhaseEnd();
-          } else {
-            setMinutes(minutes - 1);
-            setSeconds(59);
-          }
+      startTime = Date.now() - ((25 * 60 - (minutes * 60 + seconds)) * 1000);
+      
+      intervalId = setInterval(() => {
+        const currentTime = Date.now();
+        const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+        const totalSeconds = minutes * 60 + seconds;
+        const remainingSeconds = Math.max((25 * 60) - elapsedTime, 0);
+        
+        if (remainingSeconds === 0) {
+          handlePhaseEnd();
         } else {
-          setSeconds(seconds - 1);
+          setMinutes(Math.floor(remainingSeconds / 60));
+          setSeconds(remainingSeconds % 60);
         }
       }, 1000);
     }
 
-    return () => clearInterval(interval);
-  }, [isActive, minutes, seconds]);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isActive]);
 
   // Modal de confirmation de phase
   const PhaseChangeModal = () => (
